@@ -1,8 +1,8 @@
 {% extends 'movies/base.html' %}
 {% block content %}
-<div class="movie-detail">
+<div class="container fade-in">
     <!-- Main Card -->
-    <div class="card bg-black border-secondary mb-4">
+    <div class="movie-card mb-5">
         <div class="row g-0">
             <div class="col-md-4">
                 <img src="{{ movie.image.url }}" 
@@ -13,42 +13,43 @@
             
             <div class="col-md-8">
                 <div class="card-body">
-                    <h1 class="text-danger mb-3">{{ movie.mov_title }}</h1>
-                    <div class="text-white mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <h1 class="text-danger mb-0">{{ movie.mov_title }}</h1>
+                        <div class="rating-badge">
+                            {{ movie.avg_rating|floatformat:1 }}/5 ★
+                        </div>
+                    </div>
+
+                    <div class="movie-meta text-light-emphasis mb-4">
                         <div class="row">
                             <div class="col-md-4">
-                                <p><i class="bi bi-calendar"></i> {{ movie.mov_year }}</p>
+                                <p><i class="bi bi-calendar3"></i> {{ movie.mov_year }}</p>
                                 <p><i class="bi bi-clock"></i> {{ movie.mov_time }} mins</p>
                             </div>
                             <div class="col-md-4">
-                                <p><i class="bi bi-globe"></i> {{ movie.mov_lang }}</p>
-                                <p><i class="bi bi-flag"></i> {{ movie.mov_rel_country }}</p>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="rating-badge">
-                                    {{ movie.avg_rating|floatformat:1 }}/5 ★
-                                </div>
+                                <p><i class="bi bi-translate"></i> {{ movie.mov_lang }}</p>
+                                <p><i class="bi bi-globe"></i> {{ movie.mov_rel_country }}</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="genres mb-4">
-                        <h5 class="text-light">Genres</h5>
-                        {% for genre in movie.genres.all %}
-                            <span class="badge bg-danger me-1">{{ genre.gen_title }}</span>
-                        {% endfor %}
+                        <h5 class="text-light mb-3">Genres</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for genre in movie.genres.all %}
+                                <span class="badge bg-danger">{{ genre.gen_title }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <div class="cast mb-4">
-                        <h5 class="text-light">Cast</h5>
-                        <div class="row">
+                        <h5 class="text-light mb-3">Cast</h5>
+                        <div class="row g-3">
                             {% for cast in movie.moviecast_set.all %}
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-dark">
-                                    <div class="card-body">
-                                        <h6 class="text-danger">{{ cast.actor.act_fname }} {{ cast.actor.act_lname }}</h6>
-                                        <small class="text-muted">as {{ cast.role }}</small>
-                                    </div>
+                            <div class="col-md-4">
+                                <div class="glass-nav p-3 rounded-4">
+                                    <h6 class="text-danger mb-1">{{ cast.actor.act_fname }} {{ cast.actor.act_lname }}</h6>
+                                    <small class="text-light-emphasis">as {{ cast.role }}</small>
                                 </div>
                             </div>
                             {% endfor %}
@@ -56,16 +57,14 @@
                     </div>
 
                     <div class="directors mb-4">
-                        <h5 class="text-light">Directors</h5>
-                        <div class="row">
+                        <h5 class="text-light mb-3">Directors</h5>
+                        <div class="row g-3">
                             {% for direction in movie.moviedirection_set.all %}
-                            <div class="col-md-4 mb-3">
-                                <div class="card bg-dark">
-                                    <div class="card-body">
-                                        <h6 class="text-danger">
-                                            {{ direction.director.dir_fname }} {{ direction.director.dir_lname }}
-                                        </h6>
-                                    </div>
+                            <div class="col-md-4">
+                                <div class="glass-nav p-3 rounded-4">
+                                    <h6 class="text-danger mb-0">
+                                        {{ direction.director.dir_fname }} {{ direction.director.dir_lname }}
+                                    </h6>
                                 </div>
                             </div>
                             {% endfor %}
@@ -76,9 +75,10 @@
         </div>
     </div>
 
+    <!-- Rating Section -->
     <div class="rating-section">
         {% if user.is_authenticated %}
-        <div class="card bg-black border-secondary p-3 mb-4">
+        <div class="glass-nav p-4 rounded-4 mb-4">
             <h4 class="text-light mb-3">
                 {% if existing_rating %}
                     Your Rating: {{ existing_rating }} ★
@@ -93,17 +93,21 @@
                     <div class="col-md-4">
                         {{ form.rev_stars }}
                     </div>
-                    <div class="col-md-8 flex justify-center border-2 border-danger rounded p-2">
-                        <button type="submit" class="btn btn-danger mt-2">
-                            {% if existing_rating %}Update Rating{% else %}Submit Rating{% endif %}
+                    <div class="col-md-8">
+                        <button type="submit" class="btn-custom btn-login">
+                            {% if existing_rating %}
+                                <i class="bi bi-pencil"></i> Update Rating
+                            {% else %}
+                                <i class="bi bi-star"></i> Submit Rating
+                            {% endif %}
                         </button>
                     </div>
                 </div>
             </form>
         </div>
         {% else %}
-        <div class="alert alert-info">
-            <a href="{% url 'login' %}?next={{ request.path }}" class="text-decoration-none">
+        <div class="glass-nav p-4 rounded-4 text-center">
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn-custom btn-login">
                 <i class="bi bi-box-arrow-in-right"></i> Login to rate this movie
             </a>
         </div>

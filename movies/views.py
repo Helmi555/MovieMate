@@ -29,12 +29,14 @@ def home(request):
             Q(mov_rel_country__icontains=search_query)
         )
 
-    if sort_by == 'rating':
+    if sort_by == 'mov_title':
+        movies = movies.order_by('mov_title')
+    elif sort_by == '-avg_rating':
         movies = movies.order_by('-avg_rating')
-    elif sort_by == 'newest':
-        movies = movies.order_by('-mov_dt_rel')
-    else:
+    elif sort_by == '-mov_year':
         movies = movies.order_by('-mov_year')
+    else:
+        movies = movies.order_by('-mov_year')  # Default sort
 
     genres = Genre.objects.all()
     
@@ -86,8 +88,66 @@ def movie_detail(request, movie_id):
 
 @login_required
 def wishlist(request):
-    wishlist_items = Wishlist.objects.filter(user=request.user)
-    return render(request, 'movies/wishlist.html', {'wishlist': wishlist_items})
+    search_query = request.GET.get('search')
+    genre_filter = request.GET.get('genre')
+    sort_by = request.GET.get('sort')
+
+    wishlist_items = Wishlist.objects.filter(user=request.user) \
+        .select_related('movie') \
+        .annotate(avg_rating=Avg('movie__ratings__rev_stars'))
+
+    if search_query:
+        wishlist_items = wishlist_items.filter(
+            Q(movie__mov_title__icontains=search_query) |
+            Q(movie__mov_lang__icontains=search_query) |
+            Q(movie__mov_rel_country__icontains=search_query)
+        )
+
+    if genre_filter:
+        wishlist_items = wishlist_items.filter(movie__genres__id=genre_filter)
+
+    if sort_by == 'mov_title':
+        wishlist_items = wishlist_items.order_by('movie__mov_title')
+    elif sort_by == '-avg_rating':
+        wishlist_items = wishlist_items.order_by('-avg_rating')
+    elif sort_by == '-mov_year':
+        wishlist_items = wishlist_items.order_by('-movie__mov_year')
+    else:
+        wishlist_items = wishlist_items.order_by('-movie__mov_year')  # Default sort
+
+    genres = Genre.objects.all()
+    
+    return render(request, 'movies/wishlist.html', {
+        'wishlist_items': wishlist_items,
+        'genres': genres,
+        'current_genre': int(genre_filter) if genre_filter else '',
+        'current_sort': sort_by,
+        'search_query': search_query or ''
+    })
+    
+@login_required
+def remove_from_wishlist(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    Wishlist.objects.filter(user=request.user, movie=movie).delete()
+    return redirect('wishlist')
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  
+            messages.success(request, 'Password updated successfully!')
+            return redirect('profile')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    
+    return render(request, 'movies/edit_profile.html', {
+        'form': form
+    })
 
 @login_required
 def add_to_wishlist(request, movie_id):
@@ -112,61 +172,5 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form})
 
 @login_required
-def wishlist(request):
-    search_query = request.GET.get('search')
-    genre_filter = request.GET.get('genre')
-    sort_by = request.GET.get('sort')
-
-    wishlist_items = Wishlist.objects.filter(user=request.user) \
-        .select_related('movie') \
-        .annotate(avg_rating=Avg('movie__ratings__rev_stars'))
-
-    if search_query:
-        wishlist_items = wishlist_items.filter(
-            Q(movie__mov_title__icontains=search_query) |
-            Q(movie__mov_lang__icontains=search_query) |
-            Q(movie__mov_rel_country__icontains=search_query)
-        )
-
-    if genre_filter:
-        wishlist_items = wishlist_items.filter(movie__genres__id=genre_filter)
-
-    if sort_by == 'rating':
-        wishlist_items = wishlist_items.order_by('-movie__avg_rating')
-    elif sort_by == 'newest':
-        wishlist_items = wishlist_items.order_by('-movie__mov_dt_rel')
-    else:
-        wishlist_items = wishlist_items.order_by('-movie__mov_year')
-
-    genres = Genre.objects.all()
-    
-    return render(request, 'movies/wishlist.html', {
-        'wishlist_items': wishlist_items,
-        'genres': genres,
-        'current_genre': int(genre_filter) if genre_filter else '',
-        'current_sort': sort_by,
-        'search_query': search_query or ''
-    })
-    
-@login_required
-def remove_from_wishlist(request, movie_id):
-    movie = get_object_or_404(Movie, id=movie_id)
-    Wishlist.objects.filter(user=request.user, movie=movie).delete()
-    return redirect('wishlist')
-@login_required
-def edit_profile(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)  
-            messages.success(request, 'Password updated successfully!')
-            return redirect('edit_profile')
-        else:
-            messages.error(request, 'Please correct the error below.')
-    else:
-        form = PasswordChangeForm(request.user)
-    
-    return render(request, 'registration/edit_profile.html', {
-        'form': form
-    })
+def profile(request):
+    return render(request, 'movies/profile.html')

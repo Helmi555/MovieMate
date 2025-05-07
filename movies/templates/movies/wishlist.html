@@ -1,94 +1,70 @@
 {% extends 'movies/base.html' %}
+{% load static %}
+
 {% block content %}
-<div class="filter-controls mb-4">
-    <form method="GET" action="{% url 'wishlist' %}">
-        <div class="row g-3">
-            <!-- Search Bar -->
-            <div class="col-md-4">
-                <div class="input-group">
-                    <input type="text" 
-                           class="form-control bg-dark text-light border-secondary" 
-                           placeholder="Search wishlist..." 
-                           name="search"
-                           value="{{ search_query }}">
-                    <button class="btn btn-outline-danger" type="submit">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            </div>
+<div class="hero-section">
+    <h1>My Wishlist</h1>
+    <p>Keep track of movies you want to watch</p>
+</div>
 
-            <!-- Genre Filter -->
-            <div class="col-md-4">
-                <select class="form-select bg-dark text-light border-secondary" name="genre">
-                    <option value="">All Genres</option>
-                    {% for genre in genres %}
-                        <option value="{{ genre.id }}" 
-                            {% if current_genre == genre.id %}selected{% endif %}>
-                            {{ genre.gen_title }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Sort Filter -->
-            <div class="col-md-4">
-                <select class="form-select bg-dark text-light border-secondary" name="sort">
-                    <option value="">Sort By</option>
-                    <option value="rating" {% if current_sort == 'rating' %}selected{% endif %}>
-                        Highest Rating
+<div class="filter-controls">
+    <form method="get" class="row g-3">
+        <div class="col-md-4">
+            <input type="text" name="search" class="form-control" placeholder="Search wishlist..." value="{{ request.GET.search }}">
+        </div>
+        <div class="col-md-3">
+            <select name="genre" class="form-select">
+                <option value="">All Genres</option>
+                {% for genre in genres %}
+                    <option value="{{ genre.id }}" {% if request.GET.genre == genre.id|stringformat:"i" %}selected{% endif %}>
+                        {{ genre.gen_title }}
                     </option>
-                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>
-                        Newest Releases
-                    </option>
-                </select>
-            </div>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="sort" class="form-select">
+                <option value="mov_title" {% if request.GET.sort == 'mov_title' %}selected{% endif %}>Sort by Title</option>
+                <option value="-avg_rating" {% if request.GET.sort == '-avg_rating' %}selected{% endif %}>Sort by Rating</option>
+                <option value="-mov_year" {% if request.GET.sort == '-mov_year' %}selected{% endif %}>Sort by Year</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn-custom btn-primary w-100">
+                <i class="bi bi-search"></i>
+                <span>Filter</span>
+            </button>
         </div>
     </form>
 </div>
 
-<div class="row row-cols-1 row-cols-md-2 g-4">
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
     {% for item in wishlist_items %}
     <div class="col">
-        <div class="card h-100 bg-black border-secondary movie-card">
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="{{ item.movie.image.url }}" 
-                         class="img-fluid rounded-start h-100" 
-                         alt="{{ item.movie.mov_title }}" 
-                         style="object-fit: cover;">
+        <div class="movie-card">
+            <img src="{{ item.movie.image.url }}" alt="{{ item.movie.mov_title }}" class="card-img-top">
+            <div class="card-body">
+                <h5 class="card-title">{{ item.movie.mov_title }}</h5>
+                <div class="movie-meta">
+                    <span><i class="bi bi-calendar"></i> {{ item.movie.mov_year }}</span>
+                    <span><i class="bi bi-film"></i> {{ item.movie.genre.gen_title }}</span>
                 </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h3 class="card-title text-danger">{{ item.movie.mov_title }}</h3>
-                            <div class="rating-badge text-center rounded-pill">
-                                {{ item.movie.avg_rating|floatformat:1|default:"-" }}
-                            </div>
-                        </div>
-                        
-                        <div class="text-white mb-2">
-                            <span>{{ item.movie.mov_year }}</span> | 
-                            <span>{{ item.movie.mov_time }} mins</span> | 
-                            <span>{{ item.movie.mov_lang }}</span> | 
-                            <span>{{ item.movie.mov_rel_country }}</span>
-                        </div>
-
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'movie_detail' item.movie.id %}" 
-                               class="btn btn-outline-danger">
-                                View Details
-                            </a>
-                            <form action="{% url 'remove_from_wishlist' item.movie.id %}" 
-                                  method="POST" 
-                                  class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" 
-                                        class="btn btn-danger" 
-                                        title="Remove from wishlist">
-                                    Remove
-                                </button>
-                            </form>
-                        </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="rating-badge">
+                        <i class="bi bi-star-fill"></i> {{ item.movie.avg_rating|floatformat:1|default:"-" }}
+                    </span>
+                    <div class="btn-group">
+                        <a href="{% url 'movie_detail' item.movie.id %}" class="btn-custom btn-primary">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Details</span>
+                        </a>
+                        <form action="{% url 'remove_from_wishlist' item.movie.id %}" method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-custom btn-danger">
+                                <i class="bi bi-heart-fill"></i>
+                                <span>Remove</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -96,10 +72,46 @@
     </div>
     {% empty %}
     <div class="col-12">
-        <div class="alert alert-info text-center">
-            Your wishlist is empty. Start adding movies!
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Your wishlist is empty. Start adding movies!
         </div>
     </div>
     {% endfor %}
 </div>
+
+{% if wishlist_items.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if wishlist_items.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ wishlist_items.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {% for num in wishlist_items.paginator.page_range %}
+            {% if wishlist_items.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                        {{ num }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {% if wishlist_items.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ wishlist_items.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.genre %}&genre={{ request.GET.genre }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}
