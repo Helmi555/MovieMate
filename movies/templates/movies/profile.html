@@ -16,20 +16,15 @@
                     <p class="text-muted">Member since {{ user.date_joined|date:"F Y" }}</p>
                 </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
+                <div class="row mb-4 d-flex justify-content-center">
+                    <div class="col-12 text-center">
                         <div class="glass-card p-3 mb-3">
                             <h5><i class="fas fa-film me-2"></i>Movies Rated</h5>
-                            <p class="h3">{{ user.rating_set.count }}</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="glass-card p-3 mb-3">
-                            <h5><i class="fas fa-heart me-2"></i>Wishlist Items</h5>
-                            <p class="h3">{{ user.wishlist_set.count }}</p>
+                            <p class="h3 text-danger">{{ user.rating_set.count }}</p>
                         </div>
                     </div>
                 </div>
+                
 
                 <div class="glass-card p-4 mb-4">
                     <h4 class="mb-3">Recent Activity</h4>

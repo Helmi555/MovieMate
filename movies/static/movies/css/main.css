@@ -8,7 +8,7 @@
     --secondary-color: #1e293b;
     --accent-color: #f8fafc;
     --text-color: #334155;
-    --text-light: #64748b;
+    --text-light: #4f555f;
     --background: #f1f5f9;
     --card-bg: #ffffff;
     --border-color: #e2e8f0;
@@ -385,4 +385,9 @@ body {
     padding: 0.75rem 1rem;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
+}
+
+.text-light {
+    --bs-text-opacity: 1;
+    color: rgb(3, 55, 106) !important;
 }
